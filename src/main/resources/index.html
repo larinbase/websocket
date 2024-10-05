@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test with Auth</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+<h1>WebSocket Test with Authorization</h1>
+<button id="connectBtn">Connect</button>
+<button id="sendBtn" disabled>Send Message</button>
+<div id="messages"></div>s
+
+<script>
+    let stompClient;
+
+    document.getElementById('connectBtn').onclick = function() {
+
+        // const socket = new WebSocket('wss://api.light-ege.ru/api/ws'); // Убедитесь, что путь верный
+        // const socket = new SockJS('http://localhost:8080/api/ws'); // Убедитесь, что путь верный
+        const socket = new WebSocket('http://localhost:8080/ws'); // Убедитесь, что путь верный
+        // const socket = new WebSocket('wss://api.light-ege.ru/ws'); // Убедитесь, что путь верный
+
+        // Создание STOMP клиента
+        stompClient = Stomp.over(socket);
+
+        // Подключение с заголовком авторизации
+        // Замените на ваш JWT токен
+        const token = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhZG1pbiI6dHJ1ZSwic3ViIjoiRGlta2FuTGFyaW4iLCJpYXQiOjE3MjgxNDQwMTQsImV4cCI6MTczMDU2MzIxNH0.v6eSwNECT0hJ1adcQ9lOf3Zty_gI2glavWVJlznM2XQ';
+        stompClient.connect({token}, function(frame) {
+            console.log('Connected: ' + frame);
+            document.getElementById('sendBtn').disabled = false;
+
+            // Подписка на сообщения
+            stompClient.subscribe('/room/307e2fce-1209-4f77-b79e-cf60315445d5/message', function(messageOutput) {
+                const messagesDiv = document.getElementById('messages');
+                messagesDiv.innerHTML += '<p>Received: ' + messageOutput.body + '</p>';
+                console.log('Received:', messageOutput.body);
+            });
+        }, function(error) {
+            console.error('Error connecting to WebSocket:', error);
+        });
+    };
+
+    document.getElementById('sendBtn').onclick = function() {
+        if (stompClient && stompClient.connected) {
+            const message = JSON.stringify({ room_id: "307e2fce-1209-4f77-b79e-cf60315445d5", task_id: 220}); // Пример сообщения
+            stompClient.send('/app/set-task', {}, message);
+            console.log('Sent:', message);
+        } else {
+            console.error('STOMP client is not connected');
+        }
+    };
+</script>
+</body>
+</html>

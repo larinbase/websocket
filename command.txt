@@ -1,0 +1,5 @@
+cd web/infrep-backend
+git pull
+./gradlew bootJar
+docker-compose down
+docker-compose up -d --build
