@@ -15,7 +15,7 @@ services:
     expose:
       - 8080
     ports:
-      - "8080:81"
+      - "8080:80"
     restart: unless-stopped
 
   nginx:
